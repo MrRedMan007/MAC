@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAC (G-Lang) Encoder</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+          Arial, sans-serif;
+        background: #f9f7f0;
+        color: #2e2b28;
+        line-height: 1.6;
+        padding: 20px;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      h1 {
+        font-weight: 400;
+        font-size: 28px;
+        letter-spacing: -0.5px;
+      }
+      .subtitle {
+        color: #6b665e;
+        font-size: 16px;
+        margin-top: 8px;
+      }
+      .layout-toggle {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .layout-btn {
+        padding: 8px 16px;
+        border: 1px solid #ccc;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+      .layout-btn.active {
+        background: #e8e4d9;
+        border-color: #a8a295;
+        font-weight: 600;
+      }
+      textarea {
+        width: 100%;
+        height: 100px;
+        padding: 12px;
+        border: 1px solid #d5d0c7;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 15px;
+        resize: vertical;
+        margin-bottom: 12px;
+      }
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        background: #5a544a;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #4a443a;
+      }
+      .result {
+        background: white;
+        border: 1px solid #e0dbd0;
+        border-radius: 8px;
+        padding: 14px;
+        font-family: monospace;
+        font-size: 15px;
+        min-height: 60px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      footer {
+        text-align: center;
+        margin-top: 40px;
+        color: #8a8478;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>MAC (G-Lang)</h1>
+      <div class="subtitle">The keyboard cipher by Mohammad Amin Chebbi</div>
+    </header>
+
+    <div class="layout-toggle">
+      <button class="layout-btn active" data-layout="qwerty">QWERTY</button>
+      <button class="layout-btn" data-layout="azerty">AZERTY</button>
+    </div>
+
+    <textarea id="input" placeholder="Type your message here..."></textarea>
+
+    <div class="btn-group">
+      <button id="encode">Encode to MAC</button>
+      <button id="decode">Decode from MAC</button>
+    </div>
+
+    <div class="result" id="output">Your result will appear here.</div>
+
+    <footer>
+      &copy; 2025 Mohammad Amin Chebbi — Speak in numbers, connect in secret.
+    </footer>
+
+    <script>
+      // === MAC Mappings ===
+      const mappings = {
+        qwerty: {
+          encode: {
+            A: "11",
+            B: "666",
+            C: "444",
+            D: "33",
+            E: "3",
+            F: "44",
+            G: "55",
+            H: "66",
+            I: "8",
+            J: "77",
+            K: "88",
+            L: "99",
+            M: "888",
+            N: "777",
+            O: "9",
+            P: "0",
+            Q: "1",
+            R: "4",
+            S: "22",
+            T: "5",
+            U: "7",
+            V: "555",
+            W: "2",
+            X: "333",
+            Y: "6",
+            Z: "222",
+            " ": "#",
+          },
+          decode: {
+            11: "A",
+            666: "B",
+            444: "C",
+            33: "D",
+            3: "E",
+            44: "F",
+            55: "G",
+            66: "H",
+            8: "I",
+            77: "J",
+            88: "K",
+            99: "L",
+            888: "M",
+            777: "N",
+            9: "O",
+            0: "P",
+            1: "Q",
+            4: "R",
+            22: "S",
+            5: "T",
+            7: "U",
+            555: "V",
+            2: "W",
+            333: "X",
+            6: "Y",
+            222: "Z",
+            "#": " ",
+          },
+        },
+        azerty: {
+          encode: {
+            A: "1",
+            B: "666",
+            C: "444",
+            D: "33",
+            E: "3",
+            F: "44",
+            G: "55",
+            H: "66",
+            I: "8",
+            J: "77",
+            K: "88",
+            L: "99",
+            M: "00",
+            N: "777",
+            O: "9",
+            P: "0",
+            Q: "11",
+            R: "4",
+            S: "22",
+            T: "5",
+            U: "7",
+            V: "555",
+            W: "222",
+            X: "333",
+            Y: "6",
+            Z: "2",
+            " ": "@",
+          },
+          decode: {
+            1: "A",
+            666: "B",
+            444: "C",
+            33: "D",
+            3: "E",
+            44: "F",
+            55: "G",
+            66: "H",
+            8: "I",
+            77: "J",
+            88: "K",
+            99: "L",
+            "00": "M",
+            777: "N",
+            9: "O",
+            0: "P",
+            11: "Q",
+            4: "R",
+            22: "S",
+            5: "T",
+            7: "U",
+            555: "V",
+            222: "W",
+            333: "X",
+            6: "Y",
+            2: "Z",
+            "@": " ",
+          },
+        },
+      };
+
+      // DOM elements
+      const inputEl = document.getElementById("input");
+      const outputEl = document.getElementById("output");
+      const encodeBtn = document.getElementById("encode");
+      const decodeBtn = document.getElementById("decode");
+      const layoutBtns = document.querySelectorAll(".layout-btn");
+
+      let currentLayout = "qwerty";
+
+      // Layout toggle
+      layoutBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          layoutBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentLayout = btn.dataset.layout;
+        });
+      });
+
+      // Encode function
+      function encodeText(text) {
+        const map = mappings[currentLayout].encode;
+        return text
+          .toUpperCase()
+          .split("")
+          .map((char) => {
+            if (char in map) return map[char];
+            if (/[A-Z\s]/.test(char)) return ""; // skip unsupported
+            return char; // keep non-letters as-is (optional)
+          })
+          .filter((part) => part !== "")
+          .join(".");
+      }
+
+      // Decode function
+      function decodeText(code) {
+        const map = mappings[currentLayout].decode;
+        return code
+          .split(".")
+          .map((part) => map[part] || part) // keep unknown parts
+          .join("");
+      }
+
+      // Event listeners
+      encodeBtn.addEventListener("click", () => {
+        const input = inputEl.value;
+        if (!input.trim()) {
+          outputEl.textContent = "Please enter a message.";
+          return;
+        }
+        outputEl.textContent = encodeText(input);
+      });
+
+      decodeBtn.addEventListener("click", () => {
+        const input = inputEl.value;
+        if (!input.trim()) {
+          outputEl.textContent = "Please enter MAC code.";
+          return;
+        }
+        outputEl.textContent = decodeText(input);
+      });
+    </script>
+  </body>
+</html>
